@@ -2,17 +2,24 @@
 
 <html lang="en">
     <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Search</title>
+        <link rel="stylesheet" href="styles.css">
     </head>
     <body>
-        <div>
-            <form action="https://google.com/search" method="get">
-                All these words: <input type="text" name="as_q">
-                This exact word or phrase: <input type="text" name="as_epq">
-                Any of these words: <input type="text" name="as_oq">
-                None of these words: <input type="text" name="as_eq">
-                <input type="submit" value="Image Search">
-            </form>
+        <div class="container">
+            <div class="header-bar">
+                <a href="index.html">Google Search</a>
+            </div>
+            <div class="main-adv">
+                <form action="https://google.com/search" method="get" class="form-adv">
+                    <div><label for="as_q">All these words:</label> <input type="text" id="as_q" name="as_q" class="input-adv"></div>
+                    <div><label for="as_epq">This exact word or phrase:</label> <input type="text" id="as_epq" name="as_epq" class="input-adv"></div>
+                    <div><label for="as_oq">Any of these words:</label> <input type="text" id="as_oq" name="as_oq" class="input-adv"></div>
+                    <div><label for="as_eq">None of these words:</label> <input type="text" id="as_eq" name="as_eq" class="input-adv"></div>
+                    <button type="submit" class="btn-adv">Advanced Search</button>
+                </form>
+            </div>
         </div>
     </body>
 </html>
