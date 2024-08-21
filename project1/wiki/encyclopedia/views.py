@@ -16,9 +16,8 @@ def entry(request, entry):
             "title": entry
         })
     else:
-        return render(request, "encyclopedia/entry.html", {
-            "entry": "This entry does not exist.",
-            "title": "Error"
+        return render(request, "encyclopedia/error.html", {
+            "error": "This entry does not exist.",
         })
 
 def search(request):
@@ -36,12 +35,18 @@ def search(request):
 def new(request):
     class NewPageForm(forms.Form):
         title = forms.CharField(label="Entry title")
-        content = forms.CharField(label="Entry Markdown content", widget=forms.Textarea)
+        content = forms.CharField(widget=forms.Textarea, label="Entry Markdown content")
     if request.method == "POST":
         form = NewPageForm(request.POST)
         if form.is_valid():
             entry = form.cleaned_data
-            util.save_entry(entry["title"], entry["content"])
+            if not entry["title"] in util.list_entries():
+                util.save_entry(entry["title"], entry["content"])
+            else:
+                return render(request, "encyclopedia/error.html", {
+                    "error": "This entry does not exist.",
+                })
+
             return redirect("encyclopedia:index")
         else:
             return render(request, "encyclopedia/new.html", {
@@ -51,3 +56,33 @@ def new(request):
         return render(request, "encyclopedia/new.html", {
             "form": NewPageForm()
         })
+    
+def edit(request, entry):
+    if util.get_entry(entry):
+        class EditEntryForm(forms.Form):
+            title = entry
+            content = forms.CharField(widget=forms.Textarea, label="Entry Markdown content")
+        form_get = EditEntryForm(initial={"content": util.get_entry(entry)})
+    else:
+        return render(request, "encyclopedia/error.html", {
+            "error": "This entry does not exist.",
+        })
+    
+    if request.method == "POST":
+        form_post = EditEntryForm(request.POST)
+        if form_post.is_valid():
+            edited_entry_content = form_post.cleaned_data["content"]
+            util.save_entry(entry, edited_entry_content)
+            return redirect("encyclopedia:entry", entry=entry)
+        else:
+            return render(request, "encyclopedia/edit.html", {
+                "form": form_post,
+                "title": entry,
+            })
+    else:
+        return render(request, "encyclopedia/edit.html", {
+            "form": form_get,
+            "title": entry,
+        })
+
+
