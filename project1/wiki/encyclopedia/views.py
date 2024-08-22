@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from . import util
 from markdown2 import Markdown
 from django import forms
+import random
 
 def index(request):
     return render(request, "encyclopedia/index.html", {
@@ -85,4 +86,11 @@ def edit(request, entry):
             "title": entry,
         })
 
+def random_entry(request):
+    entry_list = util.list_entries()
+    if entry_list:
+        entry = random.choice(entry_list)
+        return redirect("encyclopedia:entry", entry=entry)
+    else:
+        return redirect("encyclopedia:index")
 
