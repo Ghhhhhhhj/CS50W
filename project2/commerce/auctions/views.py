@@ -1,14 +1,18 @@
 from django.contrib.auth import authenticate, login, logout
-from django.db import IntegrityError
-from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from django.db import IntegrityError, models
+from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
+from django import forms
 
-from .models import User
+from .models import User, Listing
 
 
-def index(request):
-    return render(request, "auctions/index.html")
+def index(request): 
+    listings = Listing.objects.all()
+    return render(request, "auctions/index.html", {
+        "listings": listings
+    })
 
 
 def login_view(request):
@@ -22,7 +26,7 @@ def login_view(request):
         # Check if authentication successful
         if user is not None:
             login(request, user)
-            return HttpResponseRedirect(reverse("index"))
+            return redirect("auctions:index")
         else:
             return render(request, "auctions/login.html", {
                 "message": "Invalid username and/or password."
@@ -33,7 +37,7 @@ def login_view(request):
 
 def logout_view(request):
     logout(request)
-    return HttpResponseRedirect(reverse("index"))
+    return redirect("auctions:index")
 
 
 def register(request):
@@ -58,6 +62,59 @@ def register(request):
                 "message": "Username already taken."
             })
         login(request, user)
-        return HttpResponseRedirect(reverse("index"))
+        return redirect(reverse("auctions:index"))
     else:
         return render(request, "auctions/register.html")
+    
+
+@login_required
+def create(request):
+    class ListingForm(forms.ModelForm):
+        class Meta:
+            model = Listing
+            fields = ['title', 'description', 'price', 'category', 'image_url']
+    if request.method == "POST":
+        form = ListingForm(request.POST)
+        if form.is_valid():
+            listing = form.save(commit=False)
+            listing.creator = request.user
+            listing.save()
+            return redirect("auctions:index")
+    form = ListingForm()
+    return render(request, "auctions/create.html", {
+        "form": form,
+    })
+
+@login_required
+def listing_view(request, listing_title):
+
+    user = request.user
+    listing = get_object_or_404(Listing, title=listing_title)
+    watchlisted = listing in user.watchlist.all()
+
+    if request.method == "POST":
+        if "watchlisted" in request.POST:
+            watchlisted = request.POST["watchlisted"]
+            if watchlisted == "True":
+                watchlisted = True
+                user.watchlist.add(listing)
+            elif watchlisted == "False":
+                watchlisted = False
+                user.watchlist.remove(listing)
+    
+    return render(request, "auctions/listing.html", {
+        "listing": listing,
+        "watchlisted": watchlisted
+    })
+
+
+def watchlist(request):
+    listings = request.user.watchlist.all()
+    return render(request, "auctions/watchlist.html",{
+        "listings": listings
+    })
+
+    
+
+
+    

@@ -1,0 +1,36 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+    <h2><strong>Listing: {{ listing.title }}</strong></h2>
+    <form action="{% url 'auctions:listing_view' listing_title=listing.title %}" method="post">
+        {% csrf_token %}
+        {% if watchlisted %}
+            <button type="submit" class="btn btn-primary btn-sm" value="False" name="watchlisted">Watchlisted</button>
+        {% else %}
+            <button type="submit" class="btn btn-secondary btn-sm" value="True" name="watchlisted">Watchlist</button>
+        {% endif %}
+    </form>
+    <div class="listing-full">
+        {% if listing.image_url %}
+        <div class="listing-image">
+            <img src="{{ listing.image_url }}" alt="Listing image" height="300">
+        </div>
+        {% endif %}
+        <h4>Description:</h4>
+        <div class="listing-desc">
+            {{ listing.description|linebreaks }}
+        </div>
+        <h3><strong>Price</strong>: ${{ listing.price }}</h3>
+        <div class="bid">
+            BID PLACEHOLDER
+        </div>
+        <div class="listing-detail">
+            <h4><strong>Details</strong></h4>
+            <ul> 
+                <li>Created: {{ listing.date }}</li>
+                <li>Listed by: <strong>{{ listing.creator }}</strong></li>
+                <li>Category: {{ listing.get_category_display }}</li>
+            </ul>
+        </div>
+    </div>
+{% endblock %}
