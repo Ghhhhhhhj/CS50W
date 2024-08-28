@@ -22,7 +22,21 @@
         </div>
         <h3><strong>Price</strong>: ${{ listing.price }}</h3>
         <div class="bid">
-            BID PLACEHOLDER
+            <form action="{% url 'auctions:listing_view' listing_title=listing.title %}" method="post">
+                {% csrf_token %}
+                {% if bid_count > 0 %}
+                    {{ bid_count }} bid(s) so far. 
+                {% else %}
+                    no bids so far.
+                {% endif %}
+                {% if top_bidder == user %}
+                    Your bid is the current bid. 
+                {% elif top_bidder %}
+                    Current bid belongs to <strong>{{ top_bidder.username }}</strong>.
+                {% endif %}
+                {{ form_bid }}
+                <button type="submit" class="btn btn-primary">Place Bid</button>
+            </form>
         </div>
         <div class="listing-detail">
             <h4><strong>Details</strong></h4>
@@ -32,5 +46,25 @@
                 <li>Category: {{ listing.get_category_display }}</li>
             </ul>
         </div>
+        <h4><strong>Comments</strong></h4>
+        <h5>Add comment:</h5>
+        <form action="{% url 'auctions:listing_view' listing_title=listing.title %}" method="post">
+            {% csrf_token %}
+            {{ form_comment }}
+            <input type="submit" value="Add comment">
+        </form>
+        {% for comment in comments %}
+            <div class="comment">
+                <div class="commenter">
+                    <strong>{{ comment.commenter }}</strong> wrote:
+                </div>
+                <div class="comment-detail">
+                    {{ comment.content }}
+                </div>
+                <div class="comment-date">
+                    {{ comment.date }}
+                </div>
+            </div>
+        {% endfor %}
     </div>
 {% endblock %}
