@@ -5,21 +5,22 @@
 
     <div class="container-index"></div>
     {% for listing in listings %}
-    
-        <div class="listing-index">
-            {% if listing.image_url %}
-            <a href="{% url 'auctions:listing_view' listing_title=listing.title %}" class="listing-image">
-                <img src="{{ listing.image_url }}" alt="Listing image" height="300">
-            </a>
-            {% endif %}
-            <div class="listing-info">
-                <a href="{% url 'auctions:listing_view' listing_title=listing.title %}">
-                    <h3>{{ listing.title }}</h3>
+        {% if not listing.is_closed %}
+            <div class="listing-index">
+                {% if listing.image_url %}
+                <a href="{% url 'auctions:listing_view' listing_title=listing.title %}" class="listing-image">
+                    <img src="{{ listing.image_url }}" alt="Listing image" height="300">
                 </a>
-                <h4><strong>Price</strong>: ${{ listing.price }}</h3>
-                Created {{ listing.date }}
+                {% endif %}
+                <div class="listing-info">
+                    <a href="{% url 'auctions:listing_view' listing_title=listing.title %}">
+                        <h3>{{ listing.title }}</h3>
+                    </a>
+                    <h4><strong>Price</strong>: ${{ listing.price }}</h3>
+                    Created {{ listing.date }}
+                </div>
             </div>
-        </div>
+        {% endif %}
     {% endfor %}
     </div>
 {% endblock %}

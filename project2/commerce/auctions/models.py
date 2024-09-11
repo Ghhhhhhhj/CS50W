@@ -23,6 +23,7 @@ class Listing(models.Model):
     date = models.DateTimeField(auto_now_add=True)
     creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name="listings")
     image_url = models.URLField(max_length=256, default=None)
+    is_closed = models.BooleanField(default=False)
 
 class Bid(models.Model):
     bidder = models.ForeignKey(User, on_delete=models.CASCADE, related_name="bids")

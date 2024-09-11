@@ -90,3 +90,12 @@ button {
     margin-left: 20px;
     max-width: 20vw;
 }
+
+header {
+    display: flex;
+    flex-direction: row;
+}
+
+header button {
+    margin-left: 20px;
+}

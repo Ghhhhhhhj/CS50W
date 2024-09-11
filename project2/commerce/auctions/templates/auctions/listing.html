@@ -1,15 +1,25 @@
 {% extends "auctions/layout.html" %}
 
 {% block body %}
-    <h2><strong>Listing: {{ listing.title }}</strong></h2>
-    <form action="{% url 'auctions:listing_view' listing_title=listing.title %}" method="post">
-        {% csrf_token %}
-        {% if watchlisted %}
-            <button type="submit" class="btn btn-primary btn-sm" value="False" name="watchlisted">Watchlisted</button>
-        {% else %}
-            <button type="submit" class="btn btn-secondary btn-sm" value="True" name="watchlisted">Watchlist</button>
+    <header>
+        <h2><strong>Listing: {{ listing.title }}</strong></h2>
+        {% if listing.creator == user %}
+            <form action="{% url 'auctions:listing_view' listing_title=listing.title %}" method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger" value="True" name="closed">Close auction</button>
+            </form>
         {% endif %}
-    </form>
+    </header>
+    {% if not listing.creator == user %}
+        <form action="{% url 'auctions:listing_view' listing_title=listing.title %}" method="post">
+            {% csrf_token %}
+            {% if watchlisted %}
+                <button type="submit" class="btn btn-primary btn-sm" value="False" name="watchlisted">Watchlisted</button>
+            {% else %}
+                <button type="submit" class="btn btn-secondary btn-sm" value="True" name="watchlisted">Watchlist</button>
+            {% endif %}
+        </form>
+    {% endif %}
     <div class="listing-full">
         {% if listing.image_url %}
         <div class="listing-image">
@@ -21,11 +31,9 @@
             {{ listing.description|linebreaks }}
         </div>
         <h3><strong>Price</strong>: ${{ listing.price }}</h3>
-        <div class="bid">
-            <form action="{% url 'auctions:listing_view' listing_title=listing.title %}" method="post">
-                {% csrf_token %}
+            <div class="bid">
                 {% if bid_count > 0 %}
-                    {{ bid_count }} bid(s) so far. 
+                {{ bid_count }} bid(s) so far. 
                 {% else %}
                     no bids so far.
                 {% endif %}
@@ -34,10 +42,24 @@
                 {% elif top_bidder %}
                     Current bid belongs to <strong>{{ top_bidder.username }}</strong>.
                 {% endif %}
-                {{ form_bid }}
-                <button type="submit" class="btn btn-primary">Place Bid</button>
-            </form>
-        </div>
+                {% if not listing.creator == user %}
+                    <form action="{% url 'auctions:listing_view' listing_title=listing.title %}" method="post">
+                        {% csrf_token %}
+
+                        {{ form_bid }}
+                        {% if form_bid.value.errors %}
+                        <div class="error alert alert-danger">
+                            <ul>
+                                {% for error in form_bid.value.errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+                        <button type="submit" class="btn btn-primary">Place Bid</button>
+                    </form>
+                {% endif %}
+            </div>
         <div class="listing-detail">
             <h4><strong>Details</strong></h4>
             <ul> 

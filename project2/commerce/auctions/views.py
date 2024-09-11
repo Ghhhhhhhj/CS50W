@@ -88,17 +88,6 @@ def create(request):
 
 @login_required
 def listing_view(request, listing_title):
-
-    user = request.user
-    listing = get_object_or_404(Listing, title=listing_title)
-    watchlisted = listing in user.watchlist.all()
-    comments = listing.comments.all()
-    bid_count = listing.bids.count()
-    highest_bid_value = listing.bids.aggregate(max_value=Max('value'))['max_value']
-    try:
-        top_bidder = Bid.objects.get(listing=listing, value=highest_bid_value).bidder
-    except:
-        top_bidder = None
     class CommentForm(forms.ModelForm):
         class Meta:
             model = Comment
@@ -109,10 +98,33 @@ def listing_view(request, listing_title):
             fields=['value']
         def clean_value(self):
             value = self.cleaned_data.get('value')
-            if value < 0 or value < listing.price or (highest_bid_value and value < highest_bid_value):
-                raise forms.ValidationError('Invalid bid value')
+            if value <= 0:
+                raise forms.ValidationError('Bid must be postivie')
+            if value <= listing.price:
+                raise forms.ValidationError('Bid must be higher than current price')
+            if highest_bid_value and value <= highest_bid_value:
+                raise forms.ValidationError('Bid must be higher than highest bid')
             return value
+    listing = get_object_or_404(Listing, title=listing_title)
+
+    if listing.is_closed:
+        return redirect('auctions:closed', listing_title=listing.title)
+
+    user = request.user
+    form_bid = BidForm()
+    watchlisted = listing in user.watchlist.all()
+    comments = listing.comments.all()
+    bid_count = listing.bids.count()
+    highest_bid_value = listing.bids.aggregate(max_value=Max('value'))['max_value']
+    try:
+        top_bidder = Bid.objects.get(listing=listing, value=highest_bid_value).bidder
+    except:
+        top_bidder = None
     if request.method == "POST":
+        if "closed" in request.POST and request.POST["closed"] == "True":
+            listing.is_closed = True
+            listing.save()
+            return redirect('auctions:closed', listing_title=listing.title)
         if "watchlisted" in request.POST:
             watchlisted = request.POST["watchlisted"]
             if watchlisted == "True":
@@ -135,6 +147,7 @@ def listing_view(request, listing_title):
                 bid = form_bid.save(commit=False)
                 bid.listing = listing
                 listing.price = form_bid.cleaned_data["value"]
+                
                 bid.bidder = user
                 listing.save()
                 bid.save()
@@ -143,7 +156,7 @@ def listing_view(request, listing_title):
         "listing": listing,
         "comments": comments,
         "form_comment": CommentForm(),
-        "form_bid": BidForm(),
+        "form_bid": form_bid,
         "bid_count": bid_count,
         "highest_bid_value": highest_bid_value,
         "watchlisted": watchlisted,
@@ -171,9 +184,36 @@ def category_listings(request, category):
     })
 
 
-#add error to bids
+def closed(request, listing_title):
+    class CommentForm(forms.ModelForm):
+        class Meta:
+            model = Comment
+            fields = ['content']
+    user = request.user
+    listing = get_object_or_404(Listing, title=listing_title)
+    comments = listing.comments.all()
+    highest_bid_value = listing.bids.aggregate(max_value=Max('value'))['max_value']
+    try:
+        top_bidder = Bid.objects.get(listing=listing, value=highest_bid_value).bidder
+    except:
+        top_bidder = None
+    if request.method == "POST":
+        if "content" in request.POST:
+            form_comment = CommentForm(request.POST)
+            if form_comment.is_valid():
+                comment = form_comment.save(commit=False)
+                comment.listing = listing
+                comment.commenter = user
+                comment.save()
+                return redirect('auctions:closed', listing_title=listing.title)
+    return render(request, "auctions/closed.html", {
+        "listing": listing,
+        "comments": comments,
+        "form_comment": CommentForm(),
+        "user": request.user,
+        "top_bidder": top_bidder
+    })
 
-#add closing listings
 
     
 
