@@ -1,0 +1,58 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+    <header>
+        <h2><strong>Listing: {{ listing.title }}</strong></h2>
+    </header>
+    <div class="listing-full">
+        {% if listing.image_url %}
+        <div class="listing-image">
+            <img src="{{ listing.image_url }}" alt="Listing image" height="300">
+        </div>
+        {% endif %}
+        <h4>Description:</h4>
+        <div class="listing-desc">
+            {{ listing.description|linebreaks }}
+        </div>
+        <h3><strong>Final Price</strong>: ${{ listing.price }}</h3>
+        <div class="winner">
+            {% if top_bidder %}
+                {% if top_bidder == user %}
+                    <h5><strong>You won the auction!</strong></h5>
+                {% else %}
+                    <h5><strong>{{ top_bidder.username }}</strong> won the auction!</h5>
+                {% endif %}
+            {% else %}
+                <h5><strong></strong>No Winner</strong></h5>
+            {% endif %}
+        </div>
+        <div class="listing-detail">
+            <h4><strong>Details</strong></h4>
+            <ul> 
+                <li>Created: {{ listing.date }}</li>
+                <li>Listed by: <strong>{{ listing.creator }}</strong></li>
+                <li>Category: {{ listing.get_category_display }}</li>
+            </ul>
+        </div>
+        <h4><strong>Comments</strong></h4>
+        <h5>Add comment:</h5>
+        <form action="{% url 'auctions:listing_view' listing_title=listing.title %}" method="post">
+            {% csrf_token %}
+            {{ form_comment }}
+            <input type="submit" value="Add comment">
+        </form>
+        {% for comment in comments %}
+            <div class="comment">
+                <div class="commenter">
+                    <strong>{{ comment.commenter }}</strong> wrote:
+                </div>
+                <div class="comment-detail">
+                    {{ comment.content }}
+                </div>
+                <div class="comment-date">
+                    {{ comment.date }}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}
