@@ -4,10 +4,15 @@ textarea {
 
 .email-item {
     border-style: solid;
-    border-width: 1px;
+    border-width: 2px;
     border-radius: 4px;
+    border-color: darkgray;
     padding: 8px;
     font-size: 18px;
+}
+.email-item:hover {
+    cursor: pointer;
+    border-color: black;
 }
 
 .timestamp {
